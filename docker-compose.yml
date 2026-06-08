@@ -1,0 +1,58 @@
+# One command to run the whole stack:  docker compose up --build
+#
+# First-time setup (build the FAISS index once; needs HF_TOKEN in .env):
+#   docker compose --profile tools run --rm ingest
+#
+# Then:  API -> http://localhost:8000/docs   UI -> http://localhost:8501
+
+services:
+  api:
+    build: .
+    image: agentic-rag-assistant:latest
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./storage:/app/storage   # persist FAISS index + checkpoints
+      - ./data:/app/data         # knowledge-base corpus
+    command: uvicorn agentic_rag.api.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  ui:
+    build: .
+    image: agentic-rag-assistant:latest
+    env_file: .env
+    environment:
+      - API_BASE_URL=http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    command: streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port 8501
+
+  # Flagship Next.js + Node.js 3D spider-web UI (talks to `api` via the BFF).
+  web:
+    build: ./web
+    image: agentic-rag-web:latest
+    environment:
+      - BACKEND_URL=http://api:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+  # One-off helper: build the vector store. Run with the "tools" profile so it
+  # doesn't start with `docker compose up`.
+  ingest:
+    build: .
+    image: agentic-rag-assistant:latest
+    profiles: ["tools"]
+    env_file: .env
+    volumes:
+      - ./storage:/app/storage
+      - ./data:/app/data
+    command: python -m agentic_rag.ingest

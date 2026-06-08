@@ -1,0 +1,35 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="g" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ff5663"/>
+      <stop offset="1" stop-color="#e8323f"/>
+    </linearGradient>
+    <radialGradient id="core" cx="24" cy="24" r="5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffd7db"/>
+      <stop offset="1" stop-color="#e8323f"/>
+    </radialGradient>
+  </defs>
+  <rect width="48" height="48" rx="11" fill="#0e0f14"/>
+  <!-- spokes -->
+  <g stroke="url(#g)" stroke-width="1.3" stroke-linecap="round" opacity="0.9">
+    <line x1="24" y1="24" x2="24" y2="7"/>
+    <line x1="24" y1="24" x2="38.7" y2="15.5"/>
+    <line x1="24" y1="24" x2="38.7" y2="32.5"/>
+    <line x1="24" y1="24" x2="24" y2="41"/>
+    <line x1="24" y1="24" x2="9.3" y2="32.5"/>
+    <line x1="24" y1="24" x2="9.3" y2="15.5"/>
+  </g>
+  <!-- web rings -->
+  <g stroke="url(#g)" stroke-width="1.1" fill="none">
+    <polygon points="24,12 34.4,18 34.4,30 24,36 13.6,30 13.6,18" opacity="0.7"/>
+    <polygon points="24,17.5 29.6,20.75 29.6,27.25 24,30.5 18.4,27.25 18.4,20.75" opacity="0.9"/>
+  </g>
+  <!-- shield frame (point-up hexagon) -->
+  <polygon points="24,5 40.5,14.5 40.5,33.5 24,43 7.5,33.5 7.5,14.5" fill="none" stroke="url(#g)" stroke-width="2.2" stroke-linejoin="round"/>
+  <!-- node dots -->
+  <g fill="url(#g)">
+    <circle cx="24" cy="7" r="1.7"/><circle cx="38.7" cy="15.5" r="1.7"/><circle cx="38.7" cy="32.5" r="1.7"/>
+    <circle cx="24" cy="41" r="1.7"/><circle cx="9.3" cy="32.5" r="1.7"/><circle cx="9.3" cy="15.5" r="1.7"/>
+  </g>
+  <circle cx="24" cy="24" r="3.4" fill="url(#core)"/>
+</svg>

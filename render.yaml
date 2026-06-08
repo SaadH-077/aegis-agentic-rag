@@ -1,0 +1,58 @@
+# Render Blueprint — deploys the AEGIS FastAPI backend on the free tier.
+#
+# One-click: push this repo to GitHub, then on Render go to
+#   New +  ->  Blueprint  ->  pick this repo.
+# Render reads this file, creates the service, and prompts for the two secret
+# env vars below (GROQ_API_KEY, HF_TOKEN). The frontend deploys separately on
+# Vercel (see DEPLOY.md) with BACKEND_URL pointed at this service's URL.
+#
+# Why this fits 512 MB free: no torch (embeddings run over the HF API), the LLM
+# is a hosted API (Groq), and the FAISS index is committed (164 KB) so there is
+# no build-time embedding step.
+
+services:
+  - type: web
+    name: aegis-backend
+    runtime: python
+    plan: free
+    region: frankfurt # closest to a German job market; change if you like
+    branch: main
+    buildCommand: "pip install -r requirements.txt && pip install -e . --no-deps"
+    startCommand: "uvicorn agentic_rag.api.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+
+      # ---- LLM: Groq (fast, generous free tier) ----
+      - key: LLM_PROVIDER
+        value: groq
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROQ_API_KEY
+        sync: false # you enter this in the Render dashboard (kept secret)
+
+      # ---- Embeddings: over the HF API (no local model / no torch) ----
+      - key: EMBEDDINGS_MODE
+        value: api
+      - key: EMBEDDINGS_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: HF_TOKEN
+        sync: false # free token from huggingface.co/settings/tokens (role: read)
+
+      # ---- Agent behaviour ----
+      - key: RETRIEVER_K
+        value: "3"
+      - key: MAX_RETRIES
+        value: "2"
+      - key: ENABLE_WEB_SEARCH
+        value: "true"
+      - key: REQUIRE_WEB_SEARCH_APPROVAL
+        value: "true"
+
+      # ---- Tracing (optional): set to true and add a key to enable LangSmith ----
+      - key: LANGSMITH_TRACING
+        value: "false"
+      # - key: LANGSMITH_API_KEY
+      #   sync: false

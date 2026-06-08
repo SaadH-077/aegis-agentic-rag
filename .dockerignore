@@ -1,0 +1,26 @@
+.git
+.gitignore
+.github
+.venv
+venv
+env
+__pycache__
+*.pyc
+.pytest_cache
+.ruff_cache
+.mypy_cache
+.coverage
+htmlcov
+# Ship the prebuilt FAISS index into the image, but never the runtime sqlite state.
+storage/checkpoints.sqlite*
+*.sqlite
+*.sqlite3
+.env
+.env.*
+!.env.example
+docs/images
+tests
+.idea
+.vscode
+.DS_Store
+Thumbs.db

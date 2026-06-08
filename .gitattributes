@@ -1,0 +1,9 @@
+# Normalize all text to LF in the repo (the backend builds on Linux/Render).
+* text=auto eol=lf
+
+# Treat the prebuilt FAISS index as binary so it's never line-ending mangled.
+*.faiss binary
+*.pkl binary
+*.png binary
+*.jpg binary
+*.ico binary

@@ -1,0 +1,44 @@
+# ----------------------------------------------------------------------------
+# Core runtime dependencies (no torch — embeddings run over the HF API by
+# default, keeping the install lean and disk-friendly).
+#
+# Pinned to the LangChain / LangGraph 1.0 line (verified working).
+# ----------------------------------------------------------------------------
+
+# LangChain ecosystem
+langchain>=1.0,<2.0
+langchain-core>=1.0,<2.0
+langchain-community>=0.4,<1.0
+langchain-huggingface>=1.0,<2.0
+langchain-text-splitters>=1.0,<2.0
+
+# Orchestration + observability
+langgraph>=1.0,<2.0
+langsmith>=0.4
+
+# Hugging Face inference client (used by the LangChain HF integration)
+huggingface-hub>=0.26.0
+
+# Vector store
+faiss-cpu>=1.8.0
+
+# Web search tool (keyless). Package was renamed duckduckgo-search -> ddgs.
+ddgs>=2.0
+
+# Data / config
+pydantic>=2.7
+pydantic-settings>=2.4
+python-dotenv>=1.0.1
+
+# API + UI (Streamlit is the quick/no-build UI; the flagship UI is the Next.js app in web/)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+streamlit>=1.36
+requests>=2.31
+
+# Optional providers (install on demand)
+langchain-groq>=0.2.0
+# langchain-ollama>=0.2.0
+
+# Persistent per-thread conversation memory (LangGraph SQLite checkpointer)
+langgraph-checkpoint-sqlite>=2.0.0

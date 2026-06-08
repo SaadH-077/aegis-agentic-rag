@@ -1,0 +1,7 @@
+# Optional: run the embedding model LOCALLY instead of over the HF API.
+# This pulls torch + sentence-transformers (~hundreds of MB). Only install if
+# you have the disk space and want to avoid spending HF inference credits on
+# embeddings. Then set EMBEDDINGS_MODE=local in your .env.
+-r requirements.txt
+
+sentence-transformers>=3.0
