@@ -21,6 +21,7 @@ export interface Session {
 const SESSIONS_KEY = "aegis_sessions";
 const LEGACY_KEY = "aegis_thread";
 const METRICS_KEY = "aegis_metrics";
+const MESSAGES_KEY = "aegis_messages";
 
 function persist(sessions: Session[]) {
   if (typeof window === "undefined") return;
@@ -40,6 +41,51 @@ function loadStoredMetrics(): MetricsStore {
     return JSON.parse(window.localStorage.getItem(METRICS_KEY) || "{}") as MetricsStore;
   } catch {
     return {};
+  }
+}
+
+// --- Conversation persistence (client-side source of truth) ----------------
+// The full message history of each session is stored in the browser so chats
+// survive everything — backend restarts/sleeps (Render free tier wipes the
+// server-side SQLite), redeploys, and browser closes — until the user deletes
+// the session from the UI. Keyed by thread id.
+type MessageStore = Record<string, ChatMessage[]>;
+
+function loadAllMessages(): MessageStore {
+  if (typeof window === "undefined") return {};
+  try {
+    return JSON.parse(window.localStorage.getItem(MESSAGES_KEY) || "{}") as MessageStore;
+  } catch {
+    return {};
+  }
+}
+
+function loadSessionMessages(id: string): ChatMessage[] {
+  return loadAllMessages()[id] ?? [];
+}
+
+function persistSessionMessages(id: string, msgs: ChatMessage[]) {
+  if (typeof window === "undefined") return;
+  const clean = msgs.filter((m) => !m.pending && m.content);
+  const all = loadAllMessages();
+  if (clean.length) all[id] = clean;
+  else delete all[id];
+  try {
+    window.localStorage.setItem(MESSAGES_KEY, JSON.stringify(all));
+  } catch {
+    /* localStorage quota — drop silently rather than crash the chat */
+  }
+}
+
+function deleteSessionMessages(id: string) {
+  if (typeof window === "undefined") return;
+  const all = loadAllMessages();
+  if (!(id in all)) return;
+  delete all[id];
+  try {
+    window.localStorage.setItem(MESSAGES_KEY, JSON.stringify(all));
+  } catch {
+    /* ignore */
   }
 }
 
@@ -100,18 +146,40 @@ export function useAgent(): UseAgent {
     setActiveId(activeRef.current);
   }, []);
 
+  // Persist the active conversation to the browser on every change (so it
+  // survives backend restarts/sleeps and page reloads). Skipped while restoring
+  // and while nothing real has been said yet.
+  useEffect(() => {
+    if (restoring) return;
+    const id = activeRef.current;
+    if (!id) return;
+    if (!messages.some((m) => !m.pending && m.content)) return;
+    persistSessionMessages(id, messages);
+  }, [messages, restoring]);
+
   const loadHistory = useCallback(async (id: string) => {
     setRestoring(true);
     setMessages([]);
+    // 1) The browser store is the source of truth — it survives backend
+    //    restarts (Render free tier wipes the server-side SQLite checkpoints).
+    const local = loadSessionMessages(id);
+    if (local.length) {
+      if (activeRef.current === id) {
+        setMessages(local);
+        setRestoring(false);
+      }
+      return;
+    }
+    // 2) Fallback for older sessions: the backend thread history (best-effort).
     try {
       const resp = await fetch(`/api/history?thread_id=${encodeURIComponent(id)}`, { cache: "no-store" });
       const data = (await resp.json()) as { messages?: { role: string; content: string }[] };
       if (activeRef.current === id && Array.isArray(data.messages) && data.messages.length) {
-        setMessages(
-          data.messages
-            .filter((m) => m.content?.trim())
-            .map((m) => ({ id: uid(), role: m.role === "user" ? "user" : "assistant", content: m.content })),
-        );
+        const restored: ChatMessage[] = data.messages
+          .filter((m) => m.content?.trim())
+          .map((m) => ({ id: uid(), role: m.role === "user" ? "user" : "assistant", content: m.content }));
+        setMessages(restored);
+        persistSessionMessages(id, restored); // cache so it's instant next time
       }
     } catch {
       /* fresh thread */
@@ -314,6 +382,7 @@ export function useAgent(): UseAgent {
         persistMetrics(next);
         return next;
       });
+      deleteSessionMessages(id);
       if (id === activeRef.current) {
         activeRef.current = uid();
         setActiveId(activeRef.current);
