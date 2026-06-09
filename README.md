@@ -4,13 +4,10 @@
 
 **An adaptive, self-correcting Retrieval-Augmented Generation agent — its reasoning graph visualized as a living 3D web.**
 
-3. Centered, full-width, with a caption (nice for a hero shot):
   <div align="center">
     <img src="docs/images/577shots_so.png" alt="The 3D reasoning graph" 
   width="100%">
     <br>
-    <sub><i>The agent's LangGraph as an interactive 3D web — nodes glow as
-  it runs.</i></sub>
   </div>
 
 Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and fronted by an interactive **Next.js + Node.js** Three.js UI that lights up the agent's reasoning graph in real time.
@@ -36,6 +33,12 @@ Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and f
 
 [![Live app](https://img.shields.io/badge/▶_Live_app-aegis--agentic--rag.vercel.app-e8323f?style=for-the-badge)](https://aegis-agentic-rag.vercel.app/)
 [![API docs](https://img.shields.io/badge/API_docs-Swagger-46E3B7?style=for-the-badge&logo=fastapi&logoColor=white)](https://aegis-agentic-rag.onrender.com/docs)
+
+<div align="center">
+    <img src="docs/images/image-13.jpeg" alt="The 3D reasoning graph" 
+  width="100%">
+    <br>
+  </div>
 
 > **Ask it `What is corrective RAG?`** and watch the 3D graph light up node-by-node as the agent retrieves, grades, generates, and self-checks live. Then try **`Who is the current CEO of OpenAI?`** to see it route to the web and ask for your approval first (human-in-the-loop). Deployed end to end on **100% free tiers** — Vercel (frontend) + Render (backend) + Groq (LLM) + Hugging Face (embeddings).
 >
@@ -189,6 +192,12 @@ performance · 2.57s compute · 1093ms retrieval
   grade_generation █████                 318ms
   route_question   █████                 309ms
 ```
+
+<div align="center">
+    <img src="docs/images/chat-metrics.png" alt="The 3D reasoning graph" 
+  width="100%">
+    <br>
+  </div>
 
 `GET /stats` exposes the system config (model, vector count, top-k, retry budget). For full request tracing across every LLM call, set `LANGSMITH_TRACING=true`.
 
