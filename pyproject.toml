@@ -39,7 +39,8 @@ groq = ["langchain-groq>=0.2.0"]
 ollama = ["langchain-ollama>=0.2.0"]
 
 [project.urls]
-Homepage = "https://github.com/your-username/agentic-rag-assistant"
+Homepage = "https://github.com/SaadH-077/aegis-agentic-rag"
+Repository = "https://github.com/SaadH-077/aegis-agentic-rag"
 
 [project.scripts]
 agentic-rag-ingest = "agentic_rag.ingest:main"

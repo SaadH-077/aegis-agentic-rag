@@ -11,6 +11,7 @@ Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and f
 ![LangGraph](https://img.shields.io/badge/LangGraph-1.0-FF6F61)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js)
 ![Three.js](https://img.shields.io/badge/Three.js-r169-000000?logo=three.js)
+[![CI](https://github.com/SaadH-077/aegis-agentic-rag/actions/workflows/ci.yml/badge.svg)](https://github.com/SaadH-077/aegis-agentic-rag/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
