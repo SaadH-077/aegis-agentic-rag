@@ -32,6 +32,12 @@ Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and f
 >
 > ⏳ *The backend sleeps after ~15 min idle (Render free tier), so the very first request may take ~50s to wake it — then it's fast. Deploy your own in ~10 minutes: see **[DEPLOY.md](DEPLOY.md)**.*
 
+<div align="center">
+  <img src="docs/images/Image-8.jpeg" alt="AEGIS — the agent's LangGraph rendered as an interactive 3D web, lit up mid-traversal" width="100%">
+  <br>
+  <sub><i>The agent's real LangGraph, rendered as an interactive 3D web — nodes glow as it traverses them live.</i></sub>
+</div>
+
 ---
 
 ## 🎯 The 60-second pitch
@@ -68,6 +74,13 @@ This repository is intentionally built to answer the questions a senior AI-engin
 | 📑 | **Citations** | Every answer ships its sources (KB filenames or clickable web links). |
 | 📱 | **Responsive** | Chat-first on mobile; the reasoning graph auto-reveals while searching, then reverts — with a user toggle. |
 | 💬 | **Rich Markdown answers** | Headings, **bold**, ordered/unordered lists, code blocks, blockquotes, and clickable links. |
+
+<table>
+<tr>
+<td width="60%"><img src="docs/images/Image-7.jpeg" alt="A structured, cited answer in the AEGIS chat"><br><sub>Structured Markdown answers — headings, <b>bold</b>, lists, citations, and per-answer metric chips.</sub></td>
+<td width="40%"><img src="docs/images/Image-2.jpeg" alt="AEGIS cinematic boot sequence"><br><sub>A cinematic power-up sequence on first load.</sub></td>
+</tr>
+</table>
 
 ---
 
@@ -124,6 +137,12 @@ flowchart LR
 
 The browser talks **only** to the Vercel BFF; the BFF proxies to Render server-side, so API keys never reach the client and there is no CORS surface.
 
+<div align="center">
+  <img src="docs/images/Image-9.jpeg" alt="Live system readout (model, KB size, top-k, retries, tracing) and the graph legend" width="42%">
+  <br>
+  <sub><i>A live, JARVIS-style system readout (model · index size · top-k · retry budget · tracing) and the graph legend.</i></sub>
+</div>
+
 ## 🕸️ The agent graph (what the 3D web visualizes)
 
 ```mermaid
@@ -151,6 +170,12 @@ flowchart TD
 
 Node ids in [`web/lib/graphTopology.ts`](web/lib/graphTopology.ts) match the backend node names **exactly**, so streamed events map straight onto the 3D scene.
 
+<div align="center">
+  <img src="docs/images/Image-6.jpeg" alt="The RAG pipeline shown as a numbered, step-by-step panel inside the app" width="78%">
+  <br>
+  <sub><i>The same graph as a step-by-step pipeline (the in-app "Architecture" panel) — each stage labelled with the tech behind it.</i></sub>
+</div>
+
 ---
 
 ## 🛡️ Controlling hallucination
@@ -164,9 +189,21 @@ Hallucination control is **layered**, not a single trick:
 5. **Bounded loops.** A `MAX_RETRIES` counter guarantees termination; graders default to safe values on parse failure, so a malformed LLM response degrades gracefully instead of crashing or looping forever.
 6. **Citations.** Every answer ships the exact sources (KB filenames or web URLs) behind it, so claims are auditable.
 
+<div align="center">
+  <img src="docs/images/Image-3.jpeg" alt="A grounded, cited answer with bold key terms and a subheading" width="46%">
+  <br>
+  <sub><i>A grounded, cited answer — key terms <b>bolded</b>, organised under subheadings.</i></sub>
+</div>
+
 ## 🧑‍🚀 System prompt & persona
 
 There's a real system prompt for **every reasoning step**, not one hidden string. The **persona** (identity, tone, capabilities) lives in the `direct_answer` prompt; the **grounding rules** live in the `generation` prompt; routing, grading, and rewriting each have their own. They're all in [`src/agentic_rag/prompts.py`](src/agentic_rag/prompts.py) and exposed at runtime via `GET /prompts` and the in-app **System Prompts** viewer — the source of truth, not a copy.
+
+<div align="center">
+  <img src="docs/images/Image-5.jpeg" alt="The in-app System Prompts viewer showing the persona and grounding prompts" width="80%">
+  <br>
+  <sub><i>The in-app <b>System Prompts viewer</b> — the real persona + grounding + grader prompts, loaded live from the backend.</i></sub>
+</div>
 
 ## ⏱️ Latency & observability
 
@@ -183,9 +220,23 @@ performance · 2.57s compute · 1093ms retrieval
 
 `GET /stats` exposes the system config (model, vector count, top-k, retry budget). For full request tracing across every LLM call, set `LANGSMITH_TRACING=true`.
 
+<div align="center">
+  <img src="docs/images/Image-1.jpeg" alt="The per-session metrics viewer showing per-node latency for each turn" width="60%">
+  <br>
+  <sub><i>The per-session <b>metrics viewer</b>: every turn's wall-clock, compute, retrieval/generation split, retries, and a node-by-node breakdown.</i></sub>
+</div>
+
 ## 📱 Responsive (mobile)
 
-On phones the layout is **chat-first** — the chat fills the screen. While the agent works, the live reasoning graph **auto-reveals** as a full-screen overlay, then reverts to chat when the answer lands. A header toggle (`Graph on/off`, persisted) lets a user who only wants the chat turn the animation off entirely, and a `⛶` button opens the graph on demand.
+On phones the layout is **chat-first** — the chat fills the screen, and the human-in-the-loop approval always appears right in the chat (never hidden). A live status strip shows what the agent is doing (*Retrieving… / Generating…*), and a **Graph** button opens the reasoning web as a full-screen, fully navigable modal (orbit · two-finger pan · pinch-zoom) that you dismiss to return to chat. Conversations are saved in the browser, so they survive backend restarts and reloads until you delete them.
+
+<table>
+<tr>
+<td width="33%"><img src="docs/images/Image-11.jpeg" alt="Mobile hero screen"><br><sub>Chat-first mobile hero.</sub></td>
+<td width="33%"><img src="docs/images/Image-10.jpeg" alt="Mobile chat with the Graph button"><br><sub>Full-screen chat; tap <b>Graph</b> to explore the 3D web.</sub></td>
+<td width="33%"><img src="docs/images/Image-12.jpeg" alt="Mobile boot sequence"><br><sub>Boot sequence on mobile.</sub></td>
+</tr>
+</table>
 
 ---
 
