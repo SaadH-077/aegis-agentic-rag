@@ -6,20 +6,25 @@ import * as THREE from "three";
 
 import { NODE_POSITIONS } from "@/lib/graphTopology";
 
-// Overview is offset to the right so the graph sits in the left ~60% of the
-// screen, clear of the chat panel docked on the right.
-const OVERVIEW_TARGET = new THREE.Vector3(3, 0.2, 0);
-const OVERVIEW_POS = new THREE.Vector3(2, 3.5, 33);
-// Radius of the idle orbit (camera distance from the overview target on xz).
-const ORBIT_RADIUS = OVERVIEW_POS.clone().sub(OVERVIEW_TARGET).setY(0).length();
-const ORBIT_HEIGHT = OVERVIEW_POS.y - OVERVIEW_TARGET.y;
+// Desktop: the 3D canvas is clipped to the area left of the (resizable) chat
+// panel, so the graph is centered within its own region.
+const OVERVIEW_TARGET = new THREE.Vector3(0, 0.2, 0);
+const OVERVIEW_POS = new THREE.Vector3(0, 3.5, 33);
+// Mobile: centered (chat is a separate full-screen surface) and pulled back so
+// the whole web fits a narrow portrait viewport.
+const OVERVIEW_TARGET_M = new THREE.Vector3(0, 0.2, 0);
+const OVERVIEW_POS_M = new THREE.Vector3(0, 3, 46);
 
 /**
  * Cinematic camera: glides/zooms to focus the active node as the agent traverses,
  * then eases back to a slowly-orbiting overview when idle — giving the scene a
  * living, breathing parallax. Yields to the user the moment they orbit.
  */
-export function CameraRig({ activeNode }: { activeNode: string | null }) {
+export function CameraRig({ activeNode, isMobile = false }: { activeNode: string | null; isMobile?: boolean }) {
+  const overviewPos = isMobile ? OVERVIEW_POS_M : OVERVIEW_POS;
+  const overviewTgt = isMobile ? OVERVIEW_TARGET_M : OVERVIEW_TARGET;
+  const orbitRadius = overviewPos.clone().sub(overviewTgt).setY(0).length();
+  const orbitHeight = overviewPos.y - overviewTgt.y;
   const camera = useThree((s) => s.camera);
   // OrbitControls registers itself as the default controls.
   const controls = useThree((s) => s.controls) as unknown as {
@@ -30,8 +35,8 @@ export function CameraRig({ activeNode }: { activeNode: string | null }) {
   } | null;
 
   const interacting = useRef(false);
-  const goalPos = useRef(OVERVIEW_POS.clone());
-  const goalTgt = useRef(OVERVIEW_TARGET.clone());
+  const goalPos = useRef(overviewPos.clone());
+  const goalTgt = useRef(overviewTgt.clone());
 
   useEffect(() => {
     if (!controls) return;
@@ -51,16 +56,17 @@ export function CameraRig({ activeNode }: { activeNode: string | null }) {
 
     if (activeNode && NODE_POSITIONS[activeNode]) {
       const [x, y, z] = NODE_POSITIONS[activeNode];
+      // Pull back further on mobile so the focused node isn't overwhelmingly large.
       goalTgt.current.set(x, y, z);
-      goalPos.current.set(x + 0.5, y + 1.2, z + 7.5);
+      goalPos.current.set(x + 0.5, y + 1.2, z + (isMobile ? 12 : 7.5));
     } else {
       // Slow azimuthal sway + a faint vertical bob around the overview.
       const a = Math.sin(t * 0.05) * 0.16;
-      goalTgt.current.copy(OVERVIEW_TARGET);
+      goalTgt.current.copy(overviewTgt);
       goalPos.current.set(
-        OVERVIEW_TARGET.x + Math.sin(a) * ORBIT_RADIUS,
-        OVERVIEW_TARGET.y + ORBIT_HEIGHT + Math.sin(t * 0.07) * 0.8,
-        OVERVIEW_TARGET.z + Math.cos(a) * ORBIT_RADIUS,
+        overviewTgt.x + Math.sin(a) * orbitRadius,
+        overviewTgt.y + orbitHeight + Math.sin(t * 0.07) * 0.8,
+        overviewTgt.z + Math.cos(a) * orbitRadius,
       );
     }
 

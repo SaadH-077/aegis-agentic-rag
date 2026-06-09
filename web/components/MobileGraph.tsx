@@ -3,44 +3,61 @@
 import type { AgentStatus } from "@/lib/types";
 
 const STATUS_LABEL: Record<AgentStatus, string> = {
-  idle: "Done — reasoning complete",
-  thinking: "Reasoning through the graph…",
-  awaiting_approval: "Waiting for your approval",
-  error: "Something went wrong",
+  idle: "Idle — tap a node to inspect it",
+  thinking: "Reasoning live…",
+  awaiting_approval: "Paused — approve in chat",
+  error: "Error",
+};
+
+const NODE_LABELS: Record<string, string> = {
+  contextualize: "Contextualize",
+  route_question: "Route",
+  direct_answer: "Direct Answer",
+  retrieve: "Retrieve",
+  grade_documents: "Grade Docs",
+  transform_query: "Rewrite",
+  web_gate: "Human Gate",
+  web_search: "Web Search",
+  answer_from_knowledge: "Model Answer",
+  generate: "Generate",
+  grade_generation: "Self-Check",
+  finalize: "Finalize",
 };
 
 /**
- * The mobile graph overlay frame: a floating status pill, the live node, and a
- * "back to chat" button. The 3D canvas itself shows through underneath (it is
- * promoted to a full-screen overlay by the `.stage--mobile-graph` class). Auto-
- * revealed while the agent searches; dismissible any time.
+ * Mobile graph modal chrome. The shared 3D canvas is promoted to a full-screen
+ * overlay underneath (via `.stage--mobile-graph`); this draws the title bar,
+ * live status, a close button, and the navigation hint on top. It's fully
+ * user-controlled — opening it never blocks the chat or the HITL approval.
  */
 export function MobileGraph({
   status,
   activeNode,
-  onBack,
+  onClose,
 }: {
   status: AgentStatus;
   activeNode: string | null;
-  onBack: () => void;
+  onClose: () => void;
 }) {
   return (
     <div className="mgraph">
-      <div className="mgraph__top">
-        <span className="mgraph__status">
+      <div className="mgraph__bar">
+        <span className="mgraph__title">
           <span className={`statusbar__dot statusbar__dot--${status}`} />
-          {STATUS_LABEL[status]}
+          Reasoning graph
         </span>
-        <button className="mgraph__back" onClick={onBack}>
-          ← Chat
+        <button className="mgraph__close" onClick={onClose} aria-label="Close graph and return to chat">
+          ✕ Done
         </button>
       </div>
-      {activeNode ? (
-        <span className="mgraph__node">→ {activeNode}</span>
-      ) : (
-        <span className="mgraph__hint">drag to orbit · pinch to zoom</span>
-      )}
-      <span className="mgraph__hint">live agent reasoning graph</span>
+
+      <div className="mgraph__foot">
+        <span className="mgraph__status">
+          {STATUS_LABEL[status]}
+          {activeNode && <b> → {NODE_LABELS[activeNode] ?? activeNode}</b>}
+        </span>
+        <span className="mgraph__hint">one finger rotate · two fingers pan · pinch zoom</span>
+      </div>
     </div>
   );
 }

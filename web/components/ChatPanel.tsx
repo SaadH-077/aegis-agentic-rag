@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, type MouseEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, type MouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from "react";
 
 import type { UseAgent } from "@/lib/useAgent";
 import { ApprovalGate } from "./ApprovalGate";
@@ -30,14 +30,29 @@ function relTime(ts: number): string {
 interface Props extends UseAgent {
   onShowHelp: () => void;
   onShowPrompts: () => void;
-  graphAuto: boolean;
-  onToggleGraphAuto: () => void;
   onOpenGraph: () => void;
+  onResize: (width: number) => void;
 }
+
+const NODE_LABELS: Record<string, string> = {
+  contextualize: "Contextualizing",
+  route_question: "Routing",
+  direct_answer: "Answering",
+  retrieve: "Retrieving",
+  grade_documents: "Grading docs",
+  transform_query: "Rewriting query",
+  web_gate: "Awaiting approval",
+  web_search: "Searching the web",
+  answer_from_knowledge: "Answering",
+  generate: "Generating",
+  grade_generation: "Self-checking",
+  finalize: "Finalizing",
+};
 
 export function ChatPanel({
   messages,
   status,
+  activeNode,
   pendingApproval,
   restoring,
   sessions,
@@ -50,9 +65,8 @@ export function ChatPanel({
   deleteSession,
   onShowHelp,
   onShowPrompts,
-  graphAuto,
-  onToggleGraphAuto,
   onOpenGraph,
+  onResize,
 }: Props) {
   const [input, setInput] = useState("");
   const [entered, setEntered] = useState(false);
@@ -105,12 +119,35 @@ export function ChatPanel({
     deleteSession(id);
   };
 
+  // Drag the panel's left edge to resize it (desktop). Width = viewport − cursorX.
+  const startResize = (e: ReactPointerEvent) => {
+    e.preventDefault();
+    const move = (ev: globalThis.PointerEvent) => onResize(window.innerWidth - ev.clientX);
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      document.body.style.userSelect = "";
+      document.body.style.cursor = "";
+    };
+    document.body.style.userSelect = "none";
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  };
+
   const statusLabel =
     status === "thinking" ? "running" : status === "awaiting_approval" ? "paused" : status === "error" ? "error" : "ready";
   const placeholder = pendingApproval ? "respond to the approval above…" : `try: ${SAMPLES[phIndex]}`;
 
   return (
     <aside className="panel">
+      <div
+        className="panel__resize"
+        onPointerDown={startResize}
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize chat panel"
+      />
       <header className="panel__head">
         <div>
           <div className="panel__brand">
@@ -124,20 +161,11 @@ export function ChatPanel({
           </div>
         </div>
         <div className="panel__head-actions">
-          {/* Mobile-only (CSS-gated): toggle whether the reasoning graph
-              auto-reveals while searching. Long-press / tap-and-hold not needed —
-              a tap toggles, the ⛶ opens it now. */}
-          <button
-            className={`graph-ctl${graphAuto ? " graph-ctl--on" : ""}`}
-            onClick={onToggleGraphAuto}
-            title={graphAuto ? "Graph auto-shows while searching — tap to turn off" : "Chat only — tap to auto-show the graph while searching"}
-            aria-label="Toggle graph auto-reveal"
-          >
-            <span className="graph-ctl__dot" />
-            Graph {graphAuto ? "on" : "off"}
-          </button>
-          <button className="icon-btn graph-open" onClick={onOpenGraph} title="View the reasoning graph" aria-label="View the reasoning graph">
-            ⛶
+          {/* Mobile-only (CSS-gated): open the reasoning graph as a modal you
+              control. The chat stays primary, so HITL approval is never hidden. */}
+          <button className="graph-open" onClick={onOpenGraph} title="View the reasoning graph" aria-label="View the reasoning graph">
+            <span className="graph-open__icon" aria-hidden>◵</span>
+            Graph
           </button>
           <button className="icon-btn" onClick={() => setShowSessions((s) => !s)} title="View sessions" aria-label="View sessions">
             ⧉
@@ -218,8 +246,8 @@ export function ChatPanel({
             <p className="hero__desc">
               Ask anything about AI/ML engineering. AEGIS routes your question through a live
               reasoning graph — retrieving from a curated knowledge base, grading what it finds,
-              self-checking its answer, and asking before it searches the web. Watch it think on
-              the left.
+              self-checking its answer, and asking before it searches the web. Watch it think in
+              the live graph as it works.
             </p>
             <button className="hero__cta" onClick={start}>
               Start chatting →
@@ -256,6 +284,19 @@ export function ChatPanel({
           />
         )}
       </div>
+
+      {inChat && busy && (
+        <div className="livebar">
+          <span className="livebar__dot" />
+          <span className="livebar__label">
+            {activeNode ? (NODE_LABELS[activeNode] ?? activeNode) : "Reasoning"}
+            <span className="livebar__ellipsis">…</span>
+          </span>
+          <button type="button" className="livebar__watch" onClick={onOpenGraph}>
+            watch graph →
+          </button>
+        </div>
+      )}
 
       {inChat && (
         <form className="panel__form" onSubmit={submit}>

@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { type CSSProperties, useEffect, useState } from "react";
 
 import { ArchitecturePanel } from "@/components/ArchitecturePanel";
 import { BootScreen } from "@/components/BootScreen";
@@ -24,7 +24,12 @@ const SpiderWebGraph = dynamic(() => import("@/components/SpiderWebGraph"), {
   loading: () => <div className="web-loading">Spinning up the workflow…</div>,
 });
 
-const GRAPH_AUTO_KEY = "aegis_graph_auto";
+/** Keep the chat panel between 360px and 85% of the viewport (so the graph
+ *  always keeps a usable region to its left). */
+function clampWidth(w: number): number {
+  const max = typeof window !== "undefined" ? Math.min(960, window.innerWidth * 0.85) : 960;
+  return Math.max(360, Math.min(max, Math.round(w)));
+}
 
 export default function Home() {
   const agent = useAgent();
@@ -35,13 +40,15 @@ export default function Home() {
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
   const [booting, setBooting] = useState(true);
 
-  // Mobile graph behaviour: auto-reveal the reasoning graph while the agent
-  // works, then revert to chat. The user can toggle the auto-reveal off (chat
-  // only), open the graph manually, or dismiss it mid-run.
-  const [graphAuto, setGraphAuto] = useState(true);
-  const [manualGraph, setManualGraph] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
-  const prevStatus = useRef(agent.status);
+  // Mobile: the chat is the primary, always-visible surface. The reasoning graph
+  // is an explicit, user-controlled modal — it never auto-hides the chat, so the
+  // human-in-the-loop approval card (which lives in the chat) is always reachable.
+  const [graphOpen, setGraphOpen] = useState(false);
+
+  // Desktop: the chat panel is drag-resizable; the 3D canvas is clipped to the
+  // area left of it (via the --panel-width CSS var) so the graph never overlaps
+  // the chat. Width is persisted across visits.
+  const [panelWidth, setPanelWidth] = useState(440);
 
   // Show the power-up sequence once per browser session (survives hot reloads).
   useEffect(() => {
@@ -49,45 +56,32 @@ export default function Home() {
       setBooting(false);
     }
     if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem(GRAPH_AUTO_KEY);
-      if (saved !== null) setGraphAuto(saved === "1");
+      const saved = Number(window.localStorage.getItem("aegis_panel_width"));
+      if (saved) setPanelWidth(clampWidth(saved));
     }
   }, []);
 
-  // Each new run clears a previous mid-run dismissal so the graph can reveal again.
   useEffect(() => {
-    if (agent.status === "thinking" && prevStatus.current !== "thinking") {
-      setDismissed(false);
-    }
-    prevStatus.current = agent.status;
-  }, [agent.status]);
+    if (typeof window !== "undefined") window.localStorage.setItem("aegis_panel_width", String(panelWidth));
+  }, [panelWidth]);
+
+  // Closing the graph on desktop is a no-op; leaving the breakpoint closes it.
+  useEffect(() => {
+    if (!isMobile) setGraphOpen(false);
+  }, [isMobile]);
 
   const finishBoot = () => {
     setBooting(false);
     if (typeof window !== "undefined") window.sessionStorage.setItem("aegis_booted", "1");
   };
 
-  const toggleGraphAuto = () => {
-    setGraphAuto((on) => {
-      const next = !on;
-      if (typeof window !== "undefined") window.localStorage.setItem(GRAPH_AUTO_KEY, next ? "1" : "0");
-      return next;
-    });
-  };
-  const openGraph = () => {
-    setDismissed(false);
-    setManualGraph(true);
-  };
-  const backToChat = () => {
-    setManualGraph(false);
-    setDismissed(true);
-  };
-
-  const busy = agent.status === "thinking" || agent.status === "awaiting_approval";
-  const mobileGraphVisible = isMobile && !dismissed && (manualGraph || (graphAuto && busy));
+  const mobileGraphVisible = isMobile && graphOpen;
 
   return (
-    <main className={`stage${mobileGraphVisible ? " stage--mobile-graph" : ""}`}>
+    <main
+      className={`stage${mobileGraphVisible ? " stage--mobile-graph" : ""}`}
+      style={{ "--panel-width": `${panelWidth}px` } as CSSProperties}
+    >
       {booting && <BootScreen onDone={finishBoot} />}
 
       <div className="stage__canvas">
@@ -95,6 +89,7 @@ export default function Home() {
           visited={agent.visited}
           activeNode={agent.activeNode}
           onSelect={setSelectedNode}
+          isMobile={isMobile}
         />
       </div>
 
@@ -128,17 +123,20 @@ export default function Home() {
       <StatusBar status={agent.status} activeNode={agent.activeNode} />
       <NodeInfoPanel nodeId={selectedNode} onClose={() => setSelectedNode(null)} />
 
-      {isMobile && (
-        <MobileGraph status={agent.status} activeNode={agent.activeNode} onBack={backToChat} />
+      {isMobile && graphOpen && (
+        <MobileGraph
+          status={agent.status}
+          activeNode={agent.activeNode}
+          onClose={() => setGraphOpen(false)}
+        />
       )}
 
       <ChatPanel
         {...agent}
         onShowHelp={() => setShowInfo(true)}
         onShowPrompts={() => setShowPrompts(true)}
-        graphAuto={graphAuto}
-        onToggleGraphAuto={toggleGraphAuto}
-        onOpenGraph={openGraph}
+        onOpenGraph={() => setGraphOpen(true)}
+        onResize={(w) => setPanelWidth(clampWidth(w))}
       />
 
       <InfoPanel open={showInfo} onClose={() => setShowInfo(false)} />
