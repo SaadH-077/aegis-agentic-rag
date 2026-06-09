@@ -51,8 +51,10 @@ services:
       - key: REQUIRE_WEB_SEARCH_APPROVAL
         value: "true"
 
-      # ---- Tracing (optional): set to true and add a key to enable LangSmith ----
+      # ---- LangSmith tracing (every LLM call traced to your dashboard) ----
       - key: LANGSMITH_TRACING
-        value: "false"
-      # - key: LANGSMITH_API_KEY
-      #   sync: false
+        value: "true"
+      - key: LANGSMITH_PROJECT
+        value: aegis-agentic-rag
+      - key: LANGSMITH_API_KEY
+        sync: false # LangSmith Service Key from smith.langchain.com (kept secret)
