@@ -180,6 +180,12 @@ Hallucination control is **layered**, not a single trick:
 
 There's a real system prompt for **every reasoning step**, not one hidden string. The **persona** (identity, tone, capabilities) lives in the `direct_answer` prompt; the **grounding rules** live in the `generation` prompt; routing, grading, and rewriting each have their own. They're all in [`src/agentic_rag/prompts.py`](src/agentic_rag/prompts.py) and exposed at runtime via `GET /prompts` and the in-app **System Prompts** viewer — the source of truth, not a copy.
 
+<div align="center">
+    <img src="docs/images/SystemPrompts.png" alt="The 3D reasoning graph" 
+  width="100%">
+    <br>
+  </div>
+
 ## ⏱️ Latency & observability
 
 Every node is wrapped with wall-clock instrumentation ([`graph/build.py`](src/agentic_rag/graph/build.py) → `_timed`), so each answer carries a **per-node latency trace** — how long retrieval, generation, and each grader actually took, plus the node count and how many self-correction retries ran. The UI stores this per chat and surfaces it in a **metrics viewer** (open the *Sessions* list → **metrics**):
