@@ -15,7 +15,7 @@ Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and f
 ![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
-[**Why**](#-the-60-second-pitch) · [**Feature tour**](#-feature-tour) · [**Architecture**](#-system-architecture) · [**Hallucination control**](#-controlling-hallucination) · [**Deploy**](#-deployment-free-tier) · [**Quickstart**](#-quickstart)
+### [🔴 **Live demo**](https://aegis-agentic-rag.vercel.app/) · [Why](#-the-60-second-pitch) · [Feature tour](#-feature-tour) · [Architecture](#-system-architecture) · [Hallucination control](#-controlling-hallucination) · [Deploy](#%EF%B8%8F-deployment-free-tier) · [Quickstart](#-quickstart)
 
 </div>
 
@@ -23,12 +23,14 @@ Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and f
 
 ## 🌐 Live demo
 
-> **App:** _add your Vercel URL here after deploying_ · **API docs:** _add your Render `/docs` URL_
->
-> Deploy your own in ~10 minutes, entirely on free tiers — see **[DEPLOY.md](DEPLOY.md)**.
+### ▶️ **[Try it live → aegis-agentic-rag.vercel.app](https://aegis-agentic-rag.vercel.app/)**
 
-[![Deploy to Render](https://img.shields.io/badge/Backend-Deploy%20to%20Render-46E3B7?logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/SaadH-077/aegis-agentic-rag)
-[![Deploy with Vercel](https://img.shields.io/badge/Frontend-Deploy%20with%20Vercel-000000?logo=vercel)](https://vercel.com/new/clone?repository-url=https://github.com/SaadH-077/aegis-agentic-rag/tree/main/web)
+[![Live app](https://img.shields.io/badge/▶_Live_app-aegis--agentic--rag.vercel.app-e8323f?style=for-the-badge)](https://aegis-agentic-rag.vercel.app/)
+[![API docs](https://img.shields.io/badge/API_docs-Swagger-46E3B7?style=for-the-badge&logo=fastapi&logoColor=white)](https://aegis-agentic-rag.onrender.com/docs)
+
+> **Ask it `What is corrective RAG?`** and watch the 3D graph light up node-by-node as the agent retrieves, grades, generates, and self-checks live. Then try **`Who is the current CEO of OpenAI?`** to see it route to the web and ask for your approval first (human-in-the-loop). Deployed end to end on **100% free tiers** — Vercel (frontend) + Render (backend) + Groq (LLM) + Hugging Face (embeddings).
+>
+> ⏳ *The backend sleeps after ~15 min idle (Render free tier), so the very first request may take ~50s to wake it — then it's fast. Deploy your own in ~10 minutes: see **[DEPLOY.md](DEPLOY.md)**.*
 
 ---
 
