@@ -4,6 +4,15 @@
 
 **An adaptive, self-correcting Retrieval-Augmented Generation agent — its reasoning graph visualized as a living 3D web.**
 
+3. Centered, full-width, with a caption (nice for a hero shot):
+  <div align="center">
+    <img src="docs/images/577shots_so.png" alt="The 3D reasoning graph" 
+  width="100%">
+    <br>
+    <sub><i>The agent's LangGraph as an interactive 3D web — nodes glow as
+  it runs.</i></sub>
+  </div>
+
 Built with **LangChain · LangGraph · LangSmith**, served by **FastAPI**, and fronted by an interactive **Next.js + Node.js** Three.js UI that lights up the agent's reasoning graph in real time.
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
